@@ -181,34 +181,10 @@ http {
  - 다른 서버에서 이미지 받기
    . $ sudo docker pull registry.example.com/hello:0.1
 
-
-        
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- 
-
-
+○ Docker 컨테이너 연결하기
+ - Docker 이미지를 생성할 때 웹 서버, DB 등 필요한 프로그램을 모두 설치할 수도 있지만 보통 프로그램별로 이미지를 생성함
+ - Docker 컨테이너끼리 연결할 때는 docker run 명령에서 --link 옵션을 사용함
+   . $ sudo docker run --name db -d mongo
+   . $ sudo docker run --name web -d -p 80:80 --link db:db nginx
+   
 
