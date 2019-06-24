@@ -1,0 +1,214 @@
+
+ㅁ 이미지 받기
+ - $ sudo docker pull hello-world:latest
+
+ㅁ 이미지 목록 출력
+ - $ sudo docker images
+
+ㅁ 컨테이너 생성하기
+ - $ sudo docker run -i -t --name hello hello-world
+
+ㅁ 컨테이너 목록 확인
+ - $ sudo docker ps -a
+
+ㅁ 컨테이너 시작하기
+ - $ sudo docker start hello
+ - 컨테이너 정지
+   . 셸에서 exit 또는 Ctrl+D
+   . Ctrl+P, Ctrl+Q
+ 
+ㅁ 컨테이너 재시작하기
+ - $ sudo docker restart hello
+
+ㅁ 컨테이너 접속하기
+ - $ sudo docker attach hello
+
+ㅁ 외부에서 컨테이너 안의 명령 실행하기
+ - $ sudo docker exec hello echo "Hello World"
+ - docker exec 명령은 이미 실행된 컨테이너에 apt-get, yum 명령으로 패키지를 설치하거나, 
+   각종 데몬을 실행할 때 활용할 수 있음
+
+ㅁ 컨테이너 중지하기
+ - $ sudo docker stop hello
+
+ㅁ 컨테이너 삭제하기
+ - $ sudo docker rm hello
+
+ㅁ 이미지 삭제하기
+ - $ sudo docker rmi hello-world
+ - $ sudo docker images
+
+
+ㅁ Dockerfile 작성하기
+ - example/Dockerfile
+FROM ubuntu:18.04
+MAiNTAINER Foo Bar <foo@bar.com>
+
+RUN apt-get update
+RUN apt-get install -y nginx
+RUN echo "\ndaemon off;" >> /etc/nginx/nginx.conf
+RUN chown -R www-data:www-data /var/lib/nginx
+
+VOLUME ["/data", "/etc/nginx/site-enabled", "/var/log/nginx"]
+
+WORKDIR /etc/nginx
+
+CMD ["nginx"]
+
+EXPOSE 80
+EXPOSE 443
+
+ㅁ 이미지 생성하기
+ - $ sudo docker build --tag hello:0.1
+ - $ sudo docker images
+ - $ sudo docker run --name hello-ngix -d -p 80:80 -v /root/data:/data hello:0.1
+ - $ sudo docker ps
+ - 웹 브라우저 실행, http://<호스트 IP>:80 접속
+
+ㅁ 이미지 히스토리 살펴보기
+ - $ sudo docker history hello:0.1
+
+ㅁ 컨테이너에서 파일 꺼내기
+ - $ sudo docker cp hello-nginx:/etc/nginx/nginx.conf ./
+
+ㅁ 컨테이너 변경사항을 이미지로 생성하기
+ - $ sudo docker commit -a "Foo Bar <foo@bar.com>" -m "add hello.txt" hello-nginx hello:0.2
+
+ㅁ 컨테이너에서 변경된 파일 확인하기
+ - $ sudo docker diff hello-nginx
+
+ㅁ 컨테이너 세부 정보 확인하기
+ - docker inspect <이미지 또는 컨테이너 이름>
+ - $ sudo docker inspect hello-nginx
+
+ㅁ 개인 저장소 구축하기
+ - $ sudo service docker stop
+ - $ sudo docker -d --insecure-registry localhost:9000
+
+ - /etc/init.d/docker
+   DOCKER_OPTS=--insecure-registry localhost:9000
+ - $ sudo service docker restart
+
+
+○ 로컬에 이미지 데이터 저장
+ - docker registry 서버 이미지 받기
+   . $ sudo docker pull registry:latest
+ - registry:latest  이미지를 컨테이너로 실행
+   . $ sudo docker run -d -p 9000:9000 --name hello-registry -v /tmp/registry:/tmp/registry registry
+
+○ push로 이미지 올리기
+ - $ sudo docker tag hello:0.1 localhost:9000/hello:0.1
+ - $ sudo docker push localhost:9000/hello:0.1
+
+○ pull로 이미지 받기
+ - $ sudo docker pull 192.168.1.217:9000/hello:0.1
+
+○ rmi로 이미지 삭제
+ - $ sudo docker rmi  192.168.1.217:9000/hello:0.1
+
+○ 기본 인증 사용하기
+ - 도메인 추가
+   . $ sudo vi /etc/hosts 
+   <레지스트리 서버 IP 주소>	registry.example.com
+
+ - 개인 키 파일 생성
+   . $ openssl genrsa -out server.key 2048
+ - 인증서 서명 요청 파일 생성
+   . $ openssl req -new -key server.key -out server.csr
+ - 서버 인증서 파일을 생성
+   . $  openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt
+
+ - 인증서 파일을 시스템에 설치
+   . $ sudo cp server.crt /usr/share/ca-certificates/
+   . $ echo "server.crt" | sudo tee -a /etc/ca-certificates.conf
+   . $ sudo update-ca-certificates
+   . $ sudo service docker restart
+
+ - .htpasswd 파일 생성
+   . $ sudo apt-get install apache2-utils
+   . $ htpasswd -c .htpasswd hellouser
+     <비밀번호 입력> -->smcs2019
+ - nginx.conf 화일 작성
+worker_processes        1;
+
+events {
+        worker_connections      1024;
+}
+
+http {
+        server {
+                listen  443;
+                server_name     registry.example.com;
+
+                ssl on;
+                ssl_certificate /etc/server.crt;
+                ssl_certificate_key /etc/server.key;
+
+                proxy_set_header Host   $http_host;
+                proxy_set_header X-Real_IP      $remote_addr;
+                proxy_set_header Authorization  "";
+
+                client_max_body_size 0;
+
+                chunked_transfer_encoding on;
+
+                location / {
+                        proxy_pass      http://docker-registry:9000;
+                        proxy_set_header        Host    $host;
+                        proxy_read_timeout      900;
+
+                        auth_basic              "Restricted";
+                        auth_basic_user_file    .htpasswd;
+                }
+        }
+}
+ - Docker 레지스트리 컨테이너를 생성
+   . sudo docker run -d --name docker-registry -v /tmp/registry:/tmp/registry registry:latest
+ - nginx 공식 이미지 1.7.5 버전으로 컨테이너 생성하고 docker-registry 컨테이너와 연결
+   . $ sudo docker run -d --name nginx-registry \
+       -v ~/nginx.conf:/etc/nginx/nginx.conf \
+       -v ~/.htpasswd:/etc/nginx/.htpasswd \
+       -v ~/server.key:/etc/server.key \
+       -v ~/server.crt:/etc/server.crt \
+       --link docker-registry:docker_registry \
+       -p 443:443 \
+ - https://registry.example.com에 로그인
+   . $ sudo docker login https://registry.example.com
+
+ - 이미지를 개인저장소에 올리기
+   . $ sudo docker tag hello:0.1 registry.example.com/hello:0.1
+   . $ sudo docker push registry.example.com/hello:0.1
+ - 다른 서버에서 이미지 받기
+   . $ sudo docker pull registry.example.com/hello:0.1
+
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
