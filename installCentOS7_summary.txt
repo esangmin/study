@@ -18,7 +18,7 @@
 4. 네트워크 & 호스트 이름
  - 자동 설정을 위해 '끔'으로 스위칭
  - 설정 클릭 > ip :192.168.1.53, dns :164.124.101.2
- - 호스트 이름 : centos-gen9
+ - 호스트 이름 : centos7-gen9
 5. SECURITY POLICY
  - Apply security policy 켬
 6. 설치 시작 클릭
