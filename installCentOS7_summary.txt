@@ -41,7 +41,36 @@
  - 개인 정보 : 위치 정보 서비스 끔
  - 온라인 계정 연결 : 건너뛰기 클릭
  - CentOS Linux 사용 시작하기 클릭
- 
-  
- 
+12. Network 설정
+ - sudo vi /etc/sysconfig/network-scripts/ifcfg-eno1
+   . BOOTPROTO=static 
+   . IPV6INIT=no
+   . ONBOOT=yes
+   . IPADDR="192.168.1.53"
+   . NETMASK=255.255.255.0
+   . GATEWAY="192.168.1.1"
+   . DNS1="164.124.101.2"
+[centos7@centos7-gen8 ~]$ cat /etc/sysconfig/network-scripts/ifcfg-eno1
+TYPE="Ethernet"
+PROXY_METHOD="none"
+BROWSER_ONLY="no"
+BOOTPROTO="none"
+DEFROUTE="yes"
+IPV4_FAILURE_FATAL="no"
+IPV6INIT="yes"
+IPV6_AUTOCONF="yes"
+IPV6_DEFROUTE="yes"
+IPV6_FAILURE_FATAL="no"
+IPV6_ADDR_GEN_MODE="stable-privacy"
+NAME="eno1"
+UUID="92dba149-2248-42fa-b69c-fc78cccfb485"
+DEVICE="eno1"
+ONBOOT="yes"
+MACADDR="preserve"
+IPADDR="192.168.1.52"
+PREFIX="24"
+GATEWAY="192.168.1.1"
+DNS1="164.124.101.2"
+IPV6_PRIVACY="no"
+
  
