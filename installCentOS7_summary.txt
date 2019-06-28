@@ -72,5 +72,14 @@ PREFIX="24"
 GATEWAY="192.168.1.1"
 DNS1="164.124.101.2"
 IPV6_PRIVACY="no"
+13. 한글 입력 설정
+ - Settings > Region & Language
+   . Language : 한국어
+   . 다시 Login
+   . Formats : 한국어
+   . Input Sources : 한국어(Hangul)
+   . 나머지 제거
+   . Language : English (United States)
+   . 다시 Login
 
  
