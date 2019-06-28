@@ -1,4 +1,7 @@
-
+0. RAID 구성
+ - bios에서 F10 > Smart Storage Administrator > Dynamic Smart Array B140i RAID > Actions Configure 
+   > Create Array > Select All >[Create Array] 클릭
+   . RAID 1 선택 > [Create Logical Drive] > [Finish] 클릭
 1. Install CentOS 7 선택
  - 부팅 진행되면 'Install CentOS 7' 선택하고 엔터
 2. 설치 마법사의 언어 선택
