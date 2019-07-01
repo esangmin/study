@@ -83,10 +83,10 @@ EXPOSE 443
 
 ㅁ 개인 저장소 구축하기
  - $ sudo service docker stop
- - $ sudo docker -d --insecure-registry localhost:9000
+ - $ sudo docker -d --insecure-registry localhost:5000
 
  - /etc/init.d/docker
-   DOCKER_OPTS=--insecure-registry localhost:9000
+   DOCKER_OPTS=--insecure-registry localhost:5000
  - $ sudo service docker restart
 
 
