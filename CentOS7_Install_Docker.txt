@@ -1,0 +1,19 @@
+1. Docker 기본 설치
+ - yum 패키지 업데이트
+   . yum -y update
+ - Docker & Docker Registry 설치
+   . yum -y install docker docker-registry
+2. Docker 실행 및 자동(On Boot) 실행 서비스 등록
+ - 부팅시에 실행하도록(systemctl)에 등록
+   . systemctl enable docker.service
+ - Docker 실행
+   . systemctl start docker.service
+ - systemctl 사용 Docker Status 확인
+   . systemctl status docker.service
+3. Docker 이미지 다운로드
+ - Docker 사용 준비 완료 후 이미지 다운로드
+   . docker pull centos
+ - Docker 컨테이너 실행 (강제 종료 : Ctrl-p + Ctrl-q)
+   . docker run -i -t centos /bin/bash
+
+
