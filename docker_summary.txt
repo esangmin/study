@@ -94,17 +94,20 @@ EXPOSE 443
  - docker registry 서버 이미지 받기
    . $ sudo docker pull registry:latest
  - registry:latest  이미지를 컨테이너로 실행
-   . $ sudo docker run -d -p 9000:9000 --name hello-registry -v /tmp/registry:/tmp/registry registry
+   . $ sudo docker run -d -p 5000:5000 --name hello-registry -v /tmp/registry:/tmp/registry registry
 
 ○ push로 이미지 올리기
- - $ sudo docker tag hello:0.1 localhost:9000/hello:0.1
- - $ sudo docker push localhost:9000/hello:0.1
+ - $ sudo docker tag hello:0.1 localhost:5000/hello:0.1
+ - $ sudo docker push localhost:5000/hello:0.1
 
-○ pull로 이미지 받기
- - $ sudo docker pull 192.168.1.217:9000/hello:0.1
+○ 다른 서버에서 pull로 이미지 받기
+ - $ sudo vi /etc/docker/daemon.json
+   . { "insecure-registries":["192.168.1.217:5000"] }
+ - $ sudo service docker restart
+ - $ sudo docker pull 192.168.1.217:5000/hello:0.1
 
 ○ rmi로 이미지 삭제
- - $ sudo docker rmi  192.168.1.217:9000/hello:0.1
+ - $ sudo docker rmi  192.168.1.217:5000/hello:0.1
 
 ○ 기본 인증 사용하기
  - 도메인 추가
