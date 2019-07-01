@@ -47,8 +47,10 @@
  - sudo docker run --rm hello-world
  
  
-4. docker 유저그룹 생성 및 특정유저 docker 그룹에 귀속
- - sudo groupadd docker
+4. 특정유저 docker 그룹에 귀속 
+ - docker는 기본적으로 root권한이 필요함. root가 아닌 사용자가 sudo 없이 사용하려면
+   해당 사용자를 docker 그룹에 추가해야 함
+ - 이미 그룹이 있음 sudo groupadd docker
  - sudo usermod -aG docker $USER
 
  
