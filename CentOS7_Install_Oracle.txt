@@ -7,8 +7,9 @@
  - docker pull XXXX/xxxxxx
  - docker images
 4. 실행
+ - 컨테이너가 정지되면 데이터도 손실되는 일을 방지하기 위해 volume으로 로컬 디렉토리를 지정해야 함
  - docker run --name oracle12c -d -p (외부포트):8080 -p (외부포트):1521 -v (외부경로):/u01/app/oracle XXXX/xxxxx
- - 예) docker run --name oracle12c -d -p 28080:8080 -p 21521:1521 -v
+ - 예) docker run --name oracle12c -d -p 8080:8080 -p 1521:1521 -v ~/test/oracle:/u01/app/oracle sath89/oracle-12c
 5. 실행 로그 확인
  - docker logs -f oracle12c
 6. oracle 사용자 계정 생성
