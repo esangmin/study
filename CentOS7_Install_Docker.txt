@@ -1,8 +1,28 @@
-1. Docker 기본 설치
+1. Docker 기본 설치 (1안)
+ - 이번 버전 제거
+   . sudo yum remove docker \
+                  docker-client \
+                  docker-client-latest \
+                  docker-common \
+                  docker-latest \
+                  docker-latest-logrotate \
+                  docker-logrotate \
+                  docker-selinux \
+                  docker-engine-selinux \
+                  docker-engine
+ - 최신 저장소 설정   
+   . yum install -y yum-utils device-mapper-persistent-data lvm2
+   . yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+ - Docker 최신 버전 설치
+   . yum install docker-ce
+
+1. Docker 기본 설치 (2안)
  - yum 패키지 업데이트
    . yum -y update
+
  - Docker & Docker Registry 설치
    . yum -y install docker docker-registry
+
 2. Docker 실행 및 자동(On Boot) 실행 서비스 등록
  - 부팅시에 실행하도록(systemctl)에 등록
    . systemctl enable docker.service
