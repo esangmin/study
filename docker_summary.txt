@@ -208,5 +208,7 @@ http {
      PONG
    . redis 172.17.0.4:6379>
    
-   
+○ Docker Container Log 확인
+ - $ sudo docker logs nginx-registry
+ 
 
