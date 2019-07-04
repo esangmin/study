@@ -105,6 +105,36 @@
  - sudo docker run hello-world
 
 
+○ Oracle 12c 설치
+ - $ sudo docker search oracle12c
+ - $ sudo docker login --username lsm7619 --password xxxxxxxxxx
+ - $ sudo docker pull quay.io/maksymbilenko/oracle-12c
+     . quay.io/maksymbilenko/oracle-12c : Oracle Standard Edition 12c Release 2, xe(sid & servicename), system/oracle
+       ※ 참조 https://github.com/MaksymBilenko/docker-oracle-12c
+     . fluigfws/oracle-12c : Oracle Standard Edition 12c Release 1, xe, system/oracle
+ - $ sudo docker run -d -p 8080:8080 -p 1521:1521 -v /home/data/oracle:/u01/app/oracle -e DBCA_TOTAL_MEMORY=1024 quay.io/maksymbilenko/oracle-12c
+   . $ sudo docker stop -t 120 oracle12c
+   . 항상 -t 로 중지해라, 그렇지 않으면 10초안에 shutdown 하지 않으면 Docker가 database instance를 죽임
+ - Logs
+   . $ sudo docker logs oracle12c
+   . $ sudo docker logs oracle12c | grep alertlog:
+   . $ sudo docker logs oracle12c | grep listener:
+ - SQL*Plus
+   . $ su oracle
+   . $ export PATH=$PATH:$ORACLE_HOME/bin
+   . $ sudo docker exec -it oracle12c bash
+   . $ sudo docker exec -it oracle12c sqlplus / as sysdba
+   . Run sqlplus in a separate container and connect to the database in the linked container
+     $ sudo docker run -it --rm --link oracle12c:oradb bofm/oracle12c sqlplus sys/oracle@oradb/XE as sysdba
+ - Start listener only
+   . $ sudo docker run -d --name listener -p 1521:1521 bofm/oracle12c listener
+
+○ Oracle SID 및 Port 확인
+ - sqlplus
+ - sqlplus / as sysdba
+   . select name from v$database;
+   . select dbms_xdb.gethttpport() from dual;
+   . exec dbms_xdb.sethttpport(변경할 포트번호)
 
 
 ○ Oracle 12c Client 설치
