@@ -112,7 +112,7 @@
      . quay.io/maksymbilenko/oracle-12c : Oracle Standard Edition 12c Release 2, xe(sid & servicename), system/oracle
        ※ 참조 https://github.com/MaksymBilenko/docker-oracle-12c
      . fluigfws/oracle-12c : Oracle Standard Edition 12c Release 1, xe, system/oracle
- - $ sudo docker run -d -p 8080:8080 -p 1521:1521 -v /home/data/oracle:/u01/app/oracle -e DBCA_TOTAL_MEMORY=1024 quay.io/maksymbilenko/oracle-12c
+ - $ sudo docker run -d -p 38080:8080 -p 1521:1521 -v /home/data/oracle:/u01/app/oracle -e DBCA_TOTAL_MEMORY=1024 quay.io/maksymbilenko/oracle-12c
    . $ sudo docker stop -t 120 oracle12c
    . 항상 -t 로 중지해라, 그렇지 않으면 10초안에 shutdown 하지 않으면 Docker가 database instance를 죽임
  - Logs
