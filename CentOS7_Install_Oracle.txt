@@ -7,7 +7,7 @@
  - # groupadd oinstall
  - # groupadd dba
  - # useradd -g oinstall -G dba oracle
- - # passwd oracle
+ - # passwd oracle --> smcs
 3. Oracle 계정의 Oracle의 Base 디렉토리 생성 및 환경 변수 설정
  - # cd /home/oracle
  - # mkdir db
