@@ -73,9 +73,32 @@
    . Create as Container database 체크, Pluggable database name : dcolpdb
  - 메모리 탭에서 자동 메모리 설정을 언 체크를 하고 메모리 사이즈를 설정하고 Next
    . Enable Automatic Memory Management 언 체크
-   . Allocate memory : 2048 MB 
+   . Allocate memory : 38 GB 
  - Character sets 탭에서 AL32UTF8 설정하고 Next
- - 
+ - File system Specify database file location: /home/oracle/db/oradata 입력 후 Next
+ - Register with Enterprise Manager (EM) Cloud Control 언 체크 후 Next
+ - Enable Recovery 언 체크 후 Next
+ - Use the same password for all accounts 체크 후 (SYS, SYSTEM, PDBA) Password : smcs 입력 후 Next
+ - Privileged Operating System groups 그냥 Next 
+ - 전체 조건 검사 수행 시 최대 스택 사이즈가 다릅니다. 메시지가 나타나면
+   . ulimit -s로 stack size 확인
+   . ulimit -s 10240 입력하여 stack size 늘려 줌
+ - Summary 화면에서 Install 클릭
+ - 설치 진행중 스크립트 실행
+   . # /home/oracle/oraInventory/orainstRoot.sh
+   . # /home/oracle/db/product/12.1.0/dbhome_1/root.sh
+ - 설치가 완료되면 GUI 닫기
+ - 터미널에서 oracle 계정 접속
+   . sqlplus -version
+   . sqlplus / as sysdba
+     select instance_name, status from v$instance;
+     
+ 
+ 
+ 
+   
+   
+ 
  
 
 
