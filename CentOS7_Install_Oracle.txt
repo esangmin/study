@@ -93,7 +93,16 @@
    . sqlplus / as sysdba
      select instance_name, status from v$instance;
      
- 
+8. 외부에서 접속 테스트
+ - 외부 PC에서 sqlplus 수행
+   . sqlplus system/smcs@192.168.1.52:1521/dcol
+   
+ -  포트 추가 (접속이 안되면)
+   . firewall-cmd --permanent --zone=public --add-port=1521/tcp
+   . firewall-cmd --reload
+   
+   
+
  
  
    
