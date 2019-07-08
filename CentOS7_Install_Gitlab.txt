@@ -1,0 +1,16 @@
+1. yum 패키지 정보를 다운로드
+ - #curl https://packages.gitlab.com/install/repositories/gitlab/gitlab-ce/script.rpm.sh | sudo bash
+2. GitLab 설치
+ - #EXTERNAL_URL="http://abc.def.net" yum install -y gitlab-ce
+ - 포트 변경 예정이면 포트번호까지 지정해줌
+3. 서비스 포트 변경 (선택사항)
+ - # vi /etc/gitlab/gitlab.rb
+   . nginx['listen_port'] = 8081
+   . unicorn['port'] = 8082
+ - # gitlab-ctl reconfigure
+
+4. 웹브라우저 접속
+ - id : root pw : 5iveL!fe
+
+
+
