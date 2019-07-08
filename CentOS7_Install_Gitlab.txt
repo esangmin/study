@@ -21,8 +21,11 @@
  - # gitlab-ctl reconfigure
 
 4. 웹브라우저 접속
- - id : root pw 설정 : smcs2019
+ - id : root pw 설정 : smcs2019 , id: sang.min.lee40@gmail.com/
 
+-  포트 추가 (접속이 안되면)
+   . firewall-cmd --permanent --zone=public --add-port=9000/tcp
+   . firewall-cmd --reload
 
 5. smtp 설정
    . sudo -e /etc/gitlab/gitlab.rb
