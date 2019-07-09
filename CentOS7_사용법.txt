@@ -32,3 +32,20 @@
  - 허용 IP 추가
    . 아래 예는 192.168.1. 대역에서 ssh 접근을 허용
    . firewall-cmd --permanent --zone=public --add-source=192.168.1.0/25 --add-port=22/tcp
+
+○ 서비스 관리
+ - CentOS 7 부터 서비스 데몬 관리 방법이 달라졌다. 기존의 init system에서 systemd로 기본 시스템 관리 데몬이 변경
+ - 서비스 등록 : # systemctl mask elasticsearch.service (.service 확장자 생략 가능)
+ - 서비스 삭제 : # systemctl unmask elasticsearch.service
+ - 서비스 상태 : # systemctl status elasticsearch.service
+ - 서비스 구동 : # systemctl start elasticsearch.service
+ - 서비스 중지 : # systemctl stop elasticsearch.service
+ - 서비스 재실행 : # systemctl restart elasticsearch.service
+ - 부팅시 서비스 자동 시작 : # systemctl enable elasticsearch.service
+ - 부팅시 서비스 자동 시작 비활성화 : # systemctl disable elasticsearch.service
+ - 서비스 목록 : # systemctl list-unit-files 또는 # systemctl list-units
+ - 구동에 실패한 서비스 : # systemctl list-units --state=failed
+ - 모든 active 서비스 : # systemctl list-units --state=active
+ - 서비스중에 상태가 running : # systemctl list-units --type=service --state=running
+ - active 상태 조회 : # systemctl is-active elasticsearch
+ - enable 상태 조회 : # systemctl is-enabled elasticsearch
