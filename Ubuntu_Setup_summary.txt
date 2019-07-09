@@ -178,7 +178,8 @@
 
 
 
-
+○ firewalld 설치
+ - $ sudo apt install firewalld
 
 
 
