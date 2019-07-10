@@ -1,5 +1,5 @@
 ○ 파일 설치 및 실행
- - Sonatype 홈페이지(https://www.sonatype.com/download-oss-sonatype)에서 OSS 3.X 버전을 다운로드하고 압축을 해제합니다
+ - Sonatype 홈페이지(https://www.sonatype.com/download-oss-sonatype)에서 OSS 3.X 버전을 다운로드하고 압축을 해제
  - tar zxvf nexus-3.17.0-01-unix.tar.gz
  - nexus-3.17.0-01/bin/nexus run
  - 종료 : Ctrl + C
@@ -11,17 +11,41 @@
 ○ nexus 사용자 생성
  - sudo adduser nexus
  - sudo passwd nexus --> smcs
- - 
 
-○ bin/nexus.rc 수정
+○ mv to nexus 
+ - mv /home/centos7/nexus-3.17.0-01 /home/nexus
+ - mv /home/centos7/sonatype-work /home/nexus
+ - su - nexus
+ - sudo chown -R nexus:nexus nexus-3.17.0-01
+ - sudo chown -R nexus:nexus soantype-work
+
+○ /home/nexus/nexus-3.17.0-01/bin/nexus.rc 수정
  run_as_user="nexus"
+ 
+○ /home/nexus/nexus-3.17.0-01/bin/nexus.vmoptions 수정
+-Xms1200M
+-Xmx1200M
+-XX:+UnlockDiagnosticVMOptions
+-XX:+UnsyncloadClass
+-Djava.net.preferIPv4Stack=truer
+-Dkaraf.home=.
+-Dkaraf.base=.
+-Dkaraf.etc=etc
+-Djava.util.logging.config.file=etc/java.util.logging.properties
+-Dkaraf.data=/nexus/nexus-data
+-Djava.io.tmpdir=data/tmp
+-Dkaraf.startLocalConsole=false
 
-○ sudo ln -s /home/centos7/nexus-3.17.0-01/bin/nexus /etc/init.d/nexus
+
+○ service 등록
+ - $ exit --> to centos7 user
+ - $ sudo ln -s /home/nexus/nexus-3.17.0-01/bin/nexus /etc/init.d/nexus
 
 ○ chkconfig
- - $ cd /etc/init.d
  - $ sudo chkconfig --add nexus
  - $ sudo chkconfig --levels 345 nexus on
- - $ service nexus start
+ - $ sudo service nexus start
+ - $ sudo service nexus status
+ - $ sudo service nexus stop
 
 
