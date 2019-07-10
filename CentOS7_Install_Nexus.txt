@@ -17,9 +17,9 @@
 ○ mv to nexus 
  - mv /home/centos7/nexus-3.17.0-01 /home/nexus
  - mv /home/centos7/sonatype-work /home/nexus
- - su - nexus
  - sudo chown -R nexus:nexus nexus-3.17.0-01
  - sudo chown -R nexus:nexus soantype-work
+ - su - nexus
 
 ○ /home/nexus/nexus-3.17.0-01/bin/nexus.rc 수정
  run_as_user="nexus"
