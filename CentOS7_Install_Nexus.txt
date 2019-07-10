@@ -1,3 +1,5 @@
+참조 : https://help.sonatype.com/repomanager3/installation/run-as-a-service
+
 ○ 파일 설치 및 실행
  - Sonatype 홈페이지(https://www.sonatype.com/download-oss-sonatype)에서 OSS 3.X 버전을 다운로드하고 압축을 해제
  - tar zxvf nexus-3.17.0-01-unix.tar.gz
@@ -41,11 +43,38 @@
  - $ exit --> to centos7 user
  - $ sudo ln -s /home/nexus/nexus-3.17.0-01/bin/nexus /etc/init.d/nexus
 
-○ chkconfig
+○ chkconfig 예
  - $ sudo chkconfig --add nexus
  - $ sudo chkconfig --levels 345 nexus on
  - $ sudo service nexus start
  - $ sudo service nexus status
  - $ sudo service nexus stop
 
+○ systemd 예
+ - $ /etc/systemd/system/nexus.service
+[Unit]
+Description=nexus service
+After=network.target
+  
+[Service]
+Type=forking
+LimitNOFILE=65536
+ExecStart=/home/nexus/nexus-3.17.0-01/bin/nexus start
+ExecStop=/home/nexus/nexus-3.17.0-01/bin/nexus stop
+User=nexus
+Restart=on-abort
+  
+[Install]
+WantedBy=multi-user.target
 
+ - activate the service
+   . $ sudo systemctl daemon-reload
+   . $ sudo systemctl enable nexus.service
+   . $ sudo systemctl start nexus.service
+
+○ Logs
+ - $ tail -f /home/nexus/sonatype-work/nexus3/log/nexus.log
+
+○ visit http://192.168.1.53:8081
+ - default user : admin /home/nexus/sonatype-work/nexus3/admin.password
+ 
