@@ -80,13 +80,8 @@
 <settings>
   <servers>
     <server>
-      <id>release_repo</id>               --> pom.xml의 distributionManagement에 정의된 repository id
+      <id>nexus</id>                      --> pom.xml의 distributionManagement에 정의된 repository id
       <username>deployment</username>     --> nexus에 등록된 id와 패스워드
-      <password>**********</password>
-    </server>
-    <server>
-      <id>snapshots_repo</id>              --> pom.xml의 distributionManagement에 정의된 repository id
-      <username>deployment</username>      --> nexus에 등록된 id와 패스워드
       <password>**********</password>
     </server>
   </servers>
@@ -95,12 +90,14 @@
       <!--This sends everything else to /public -->
       <id>public-mirror</id>
       <mirrorOf>*</mirrorOf>             --> mirror 대상 repository id
-      <url>http://192.168.1.53:8081/repository/maven-public/</url>
+      <url>http://192.168.1.53:8081/repository/maven-proxy/</url>
     </mirror>
   </mirrors>
   <profiles>
     <profile>
       <id>nexus</id>
+      <!--Enable snapshots for the built in central repo to direct -->
+      <!--all requests to nexus via the mirror -->
       <repositories>
         <repository>
           <id>central</id>
@@ -157,12 +154,12 @@
   <distributionManagement>  
     <!-- use the following if you're not using a snapshot version. -->  
     <repository>  
-      <id>release_repo</id>  
+      <id>nexus</id>  
       <url>http://[domain]:[port]/nexus/content/repositories/releases/</url>  
     </repository>  
     <!-- use the following if you ARE using a snapshot version. -->  
     <snapshotRepository>  
-      <id>snapshots_repo</id>  
+      <id>nexus</id>  
       <url>http://[domain]:[port]/nexus/content/repositories/snapshots/</url>  
     </snapshotRepository>  
   </distributionManagement>
