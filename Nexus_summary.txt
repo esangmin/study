@@ -81,16 +81,16 @@
   <servers>
     <server>
       <id>nexus</id>                      --> pom.xml의 distributionManagement에 정의된 repository id
-      <username>deployment</username>     --> nexus에 등록된 id와 패스워드
+      <username>admin</username>          --> nexus에 등록된 id와 패스워드
       <password>**********</password>
     </server>
   </servers>
   <mirrors>
     <mirror>
       <!--This sends everything else to /public -->
-      <id>public-mirror</id>
+      <id>nexus</id>
       <mirrorOf>*</mirrorOf>             --> mirror 대상 repository id
-      <url>http://192.168.1.53:8081/repository/maven-central/</url>
+      <url>http://192.168.1.53:8081/repository/maven-public/</url>
     </mirror>
   </mirrors>
   <profiles>
