@@ -90,7 +90,7 @@
       <!--This sends everything else to /public -->
       <id>public-mirror</id>
       <mirrorOf>*</mirrorOf>             --> mirror 대상 repository id
-      <url>http://192.168.1.53:8081/repository/maven-proxy/</url>
+      <url>http://192.168.1.53:8081/repository/maven-central/</url>
     </mirror>
   </mirrors>
   <profiles>
@@ -122,7 +122,7 @@
   </activeProfiles>
 </settings>
 
-○ Repository 생성
+○ Repository 생성 (maven-public 사용할 경우, 생성 불필요)
  - Go to the repository manager user interface.
  - Click Administration in the left navigational menu, then click Repositories.
  - Click Create repository and choose the maven2 (proxy) recipe from the list.
@@ -155,17 +155,35 @@
     <!-- use the following if you're not using a snapshot version. -->  
     <repository>  
       <id>nexus</id>  
-      <url>http://[domain]:[port]/nexus/content/repositories/releases/</url>  
+      <url>http://192.168.1.53:8081/repository/maven-releases/</url>  
     </repository>  
     <!-- use the following if you ARE using a snapshot version. -->  
     <snapshotRepository>  
       <id>nexus</id>  
-      <url>http://[domain]:[port]/nexus/content/repositories/snapshots/</url>  
+      <url>http://192.168.1.53:8081/repository/maven-snapshots/</url>  
     </snapshotRepository>  
   </distributionManagement>
   
-
-
+○ NPM 설정
+ - Click Administration in the left navigational menu, then click Repositories.
+ - Click Create repository and choose npm (proxy) from the list.
+ - Add the following text in the required fields:
+   . Name: npm-proxy
+   . Remote Store URL: https://registry.npmjs.org/
+ - From the command-line interface run npm config set registry http://192.168.1.53:8081/repository/npm-proxy/
+ - 위에서 만든 Repository를 사용하도록 설정
+   . 해시 생성 : echo -n 'admin:비밀번호' | openssl base64
+   . .npmrc 파일(c:\Users\사용자이름\.npm) 수정 : _auth=생성된 해시
+ - From the command-line interface, create a package.json with the values below:
+{
+  "name": "sample_project1",
+  "version": "0.0.1",
+  "description": "Test Project 1",
+  "dependencies" : {
+    "commonjs" : "0.0.1"
+  }
+}
+ - Run the npm build with the command npm install
 
 
 
