@@ -21,5 +21,7 @@
    . 윈도우서비스 등록 : nginxsvc.exe /install
    . 윈도우서비스 제거 : nginxsvc.exe /uninstall
      
-   
+○  React 앱 배포
+ - npm run build
+ 
    
