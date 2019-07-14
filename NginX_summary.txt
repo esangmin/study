@@ -28,6 +28,22 @@
    . 제어판 > 서비스 에서 nginx 다시 시작
  - 웹브라우저에서 해당 url 입력 후 확인
  
- 
-   
-    
+○ 설치 on CentOS 7
+ - /etc/yum.repos.d/nginx.repo 파일에 아래 내용 추가
+   . [nginx]
+   . name=nginx repo
+   . baseurl=http://nginx.org/packages/centos/7/#basearch/
+   . gpgcheck=0
+   . enabled=1
+ - Red Hat 계열의 배포판에는 nginx가 없기 때문에 외부저장소에서 가져와야만 함
+ - yum install nginx
+ . 서비스할 포트 방화벽 해제
+   . firewall-cmd --permanent --zone=public --add-port=81/tcp
+   . firewall-cmd --reload
+   . firewall-cmd --list-ports
+ - 데몬 구동   
+   . /etc/nginx/conf.d/default.conf 수정 : listen 포트번호, root 배포폴더
+   . systemctl stqart nginx
+   . systemctl enable nginx   
+ - 참조 : https://www.nginx.com/resources/wiki/start/topics/tutorials/install/ 
+          https://gsk121.tistory.com/389
