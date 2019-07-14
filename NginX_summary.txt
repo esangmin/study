@@ -47,3 +47,6 @@
    . systemctl enable nginx   
  - 참조 : https://www.nginx.com/resources/wiki/start/topics/tutorials/install/ 
           https://gsk121.tistory.com/389
+
+○ React + nginx on Docker 배포
+ - 참조 : https://codechacha.com/ko/dockerizing-react-with-nginx/
