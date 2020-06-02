@@ -2153,5 +2153,26 @@ if __name__ == "__main__":
   img_1077.jpg --> Ashley_2.jpg   
 
 ○ 바이너리 데이터 레코드 배치 작업
+ - struct 모듈은 가변 길이 바이너리 레코드 형식으로 작업하기 위한 pack()과 
+   unpack() 함수를 제공합니다. 다음 예제는 zipfile 모듈을 사용하지 않고 
+   ZIP 파일의 헤더 정보를 루핑하는 법을 보여줍니다. 팩 코드 "H" 와 "I" 는 
+   각각 2바이트와 4바이트의 부호 없는 숫자를 나타냅니다. "<" 는 표준 
+   크기이면서 리틀 엔디안 바이트 순서를 가짐을 나타냅니다.
+  import struct
 
-          
+  with open('myfile.zip', 'rb') as f:
+      data = f.read()
+
+  start = 0
+  for i in range(3):                      # show the first 3 file headers
+      start += 14
+      fields = struct.unpack('<IIIHH', data[start:start+16])
+      crc32, comp_size, uncomp_size, filenamesize, extra_size = fields
+
+      start += 16
+      filename = data[start:start+filenamesize]
+      start += filenamesize
+      extra = data[start:start+extra_size]
+      print(filename, hex(crc32), comp_size, uncomp_size)
+
+      start += extra_size + comp_size     # skip to the next header         
