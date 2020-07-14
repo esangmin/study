@@ -1,0 +1,126 @@
+○ 외부 패키지 사용 시 문제점
+ - 외부 패키지 버전 일관성 문제
+ - 외부 패키지 다운로드 불가 문제
+
+○ 개요
+ - 1.13버전에서 고 모듈 지원
+
+○ 고 모듈 이전 해결 방법
+ - 벤더링 : vendor 디렉토리에 특정 버전의 외부 패키지들을 저장 시킨 뒤 빌드에 참여 시킴
+ - 도커 이미지 : 도커이미지 상 GOPATH에 해당되는 경로에 미리 외부 패키지들을 저장시키면 벤더링 효과
+
+○ 고 모듈
+ - A module is a collection of Go packages stored in a file tree with a go.mod file at its root.
+ - 간단히 말해 모듈은 go.mod 파일과 하위 패키지들을 포함하는 디렉토리
+ - 모듈은 go.mod 파일이 없는 패키지와도 호환됨
+
+○ 외부 모듈 버전 관리
+ - 외부 모듈 경로와 버전 정보가 go.mod 파일에 기록됨
+ - 이후 외부 모듈들을 다시 구성해야 할 경우가 발생하면, 이 go.mod 파일에 명시된 버전으로 모듈들을 다운로드 받게 됨
+
+[go.mod]
+module sample
+go 1.13
+require (
+	github.com/aliyun/aliyun-oss-go-sdk v2.0.5+incompatible
+	github.com/artdarek/go-unzip v0.0.0-20180315101617-33dc05190e4b
+	github.com/asaskevich/govalidator v0.0.0-20200108200545-475eaeb16496
+	github.com/baiyubin/aliyun-sts-go-sdk v0.0.0-20180326062324-cfa1a18b161f // indirect
+	github.com/extrame/ole2 v0.0.0-20160812065207-d69429661ad7 // indirect
+	github.com/go-sql-driver/mysql v1.5.0
+	github.com/go-xorm/xorm v0.7.9
+	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
+	github.com/labstack/echo v3.3.10+incompatible
+	github.com/pangpanglabs/echoswagger v1.1.0
+	github.com/pangpanglabs/goutils v0.0.0-20200116103626-3f9fcfaa29b0
+	github.com/sergeilem/xls v0.0.1
+	github.com/tealeg/xlsx v1.0.5
+	github.com/urfave/cli v1.22.2
+	golang.org/x/image v0.0.0-20200119044424-58c23975cae1
+)
+
+○ 다운로드 할 모듈 버전 지정
+ - 모듈 경로 맨 끝에 @버전을 명시하면 되며, 생략하면 @latest가 됨
+ go get github.com/user/module@1.3.0
+ go get github.com/user/module@latest
+
+○ 프록시 서버
+ - 외부 모듈은 프록시 서버를 통해 다운로드 됨
+ - 공식 프록시 서버(https://proxy.golang.org)가 기본적으로 사용되며 설정에 따라 사설 프록시 서버 사용도 가능
+
+○ 환경 변수
+ - GO111MODULE: on | off | auto
+   . 1.13버전 이후로 디렉토리에 go.mod 파일이 있으면 기본적으로 모듈 모드로 동작함
+   . 1.11, 1.12 버전의 경우 디렉토리가 GOPATH에 설정한 경로 상에 위치하면 go.mod 파일이 있더라도 기본적으로 모듈 모드로 동작하지 않음
+   . 이 경우 명시적으로 모듈 모드를 사용하기 위해 해당 환경 변수를 on으로 설정하면 됨
+ - GOPROXY: proxy server url
+   . 모듈 모드에서 외부 모듈 다운로드할 때 참조됨
+   . 따로 설정하지 않으면 공식 프록시 서버(https://proxy.golang.org)로 설정됨
+
+○ 적용 방법
+ 1. 프로젝트 위치로 이동
+
+ 2. go mod init [모듈 경로]으로 go.mod 파일 생성
+  - 프로젝트가 GOPATH에 설정한 경로 상에 위치하면 모듈 경로 생략 가능
+ - 프로젝트가 $GOPATH/src/new-module에 위치했다면 아래와 같이 기록됨
+[go.mod]
+1 module new-module
+2 go 1.13
+
+ 3. go get 또는 go mod tidy를 통해 사용되는 외부 모듈 목록을 go.mod 파일에 기록
+[go.mod]
+module new-module
+go 1.13
+require (
+	github.com/labstack/echo v3.3.10+incompatible
+)
+ - github.com/labstack/echo를 외부 모듈로 사용하고 있었다면 위와 같이 기록됨
+
+ 4. 위 과정을 거치면서 생성된 go.mod와 go.sum(체크섬) 파일을 커밋하여 관리
+
+○ 모듈 적용 후 발생할 수 있는 문제
+ - 공식 프록시 서버 사용 불가
+
+ - 비모듈 모드 때와 버전 불일치
+  . 만약 외부 모듈 경로에 버전이 명시되지 않으면 다운로드할 때 모드별로 상이하게 동작하게 됨
+    -- 모듈 모드 : 0.1 버전 혹은 모듈이 적용되기 전 가장 최신 버전을 다운로드 함
+    -- 비모듈 모드: 저장소의 기본 브랜치가 가리키는 버전을 다운로드 함
+
+ - 모듈 모드가 동작 안함
+  . 1.11, 1.12 버전일 경우 디렉토리가 GOPATH에 설정한 경로상에 위치하면 go.mod 파일이 있어도 기본적으로 비모듈 모드가 됨
+  . 이 경우 명시적으로 GO111MODULE을 on으로 설정하여야 모듈 모드로 동작함
+ . 공식 프록시 서버를 기본적으로 사용하지 않기 때문에 GOPROXY에 직접 프록시 서버를 지정하여야 함
+GO111MODULE=on GOPROXY=https://proxy.golang.org go get
+GO111MODULE=on go build
+  . 만약 환경 변수를 전역으로 설정하지 않고 커맨드마다 따로 설정하려면 빌드 커맨드 앞에도 GO111MODULE를 설정해야 함
+
+ - 벤더링 안됨
+  . 비모듈 모드와는 다르게 모듈 모드에서는 빌드 옵션을 추가하여야 벤더링된 외부 모듈을 사용함
+  . 일부분 모듈 벤더링이 아직 지원되지 않음
+  . 벤더링을 원하면 모든 외부 모듈을 벤더링하여야 함
+go mod vendor
+go build -mod vendor
+ . vendor 디렉토리로 모든 외부 모듈을 복사
+  . 빌드할 때 -mod vendor 옵션을 붙여 벤더링된 외부 모듈을 사용
+
+ - 로컬 모듈 사용
+  . 프록시 서버를 통해 다운로드 받은 외부 모듈이 아닌 로컬 모듈을 사용해야 한다면 go.mod 파일 수정이 필요함
+colleague
+|-- foo
+|   `-- go.mod
+|   `-- xxx.go
+|-- kit
+|   `-- go.mod
+|   `-- xxx.go
+  . 예를 들어 위와 같은 디렉토리 구성에서 colleague/foo 모듈이 colleague/kit 로컬 모듈을 사용한다면
+  colleague/foo 디렉토리 go.mod 파일에 replace 구문을 추가함
+module colleague/foo
+go 1.13
+require (
+    colleague/kit v0.0.0
+)
+replace colleague/kit => ../kit
+  . 외부 모듈일 때와 다르게 로컬 모듈은 반드시 go.mod 파일을 가지고 있어야 함
+  . 만약 colleague/kit 디렉토리에 go.mod 파일이 없다면 빌드할 때 go.mod 파일을 찾을 수 없다는 오류가 발생함
+  . require 구문에서 로컬 모듈 버전을 명시하기 애매하다면 v0.0.0으로 지정하거나 go mod tidy를 사용하여
+  자동으로 버전이 지정되도록 할 수 있음
