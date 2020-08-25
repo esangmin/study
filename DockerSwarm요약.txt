@@ -1,0 +1,166 @@
+○ Container Orchestration
+ - 다중 컨테이너 패키지 어플리케이션을 배포하는 동안 사용되는 컨테이너, 
+   리소스의 자동화, 정렬, 조정 및 관리를 하는 것을 말함
+
+○ Dokcer Swarm   
+ - 수많은 컨테이너 오케스트레이션 도구 중의 하나로, 여러 대의 Docker 호스트들을
+   마치 하나인 것처럼 만들어주는 Orchestration 도구
+ - Docker v1.12 이후부터 Docker Swarm Mode로 별개의 Docker Swarm 엔진에서 
+   Docker 엔진으로 통합되면서 좀 더 간편한 설치가 가능해졌음
+ - 기본적으로 Docker Swarm은 Master노드와 Worker노드로 시스템을 구성함
+ - Master 노드에서는 클러스터 관리 작업을 하고 클러스터 상태 유지, 스케줄링 
+   서비스, Swarm HTTP API Endpoint를 제공함
+ - Worker 노드는 컨테이너를 실행하는 역할만 함
+ 
+
+○ Dokcer Swarm   
+ - Swarm은 무리, 군중이라는 의미를 가지고 있으며, Docker Swarm은 여러 컨테이너를
+   클러스터로 만들어 관리해줌
+ - Docker개발자들이 Swarm을 개발하였기 때문에 이미 Docker 핵심 기능으로 포함되어
+   있어, Docker를 사용한 orchestration infra를 구축할 때 가장 호환성이 좋음
+ - Node
+   . 클러스터에 속한 도커 서버 단위임
+   . 보통 한 서버에 하나의 도커 데몬을 실행하기 때문에 노드는 곧 서버라고 이해할
+     수 있음          
+ - Manager
+   . 매니저는 클러스터의 상태를 관리함
+   . 명령어는 매니저 노드에서만 실행할 수 있음
+   . 아키텍처상에서 매니저는 High Availability를 위하여 여러 대 실행되어야 함
+   . 일반적으로 노드마다 매니저가 배포됨
+ - Worker
+   . 매지저의 명령을 받아 컨테이너를 생성하고 상태를 체크함
+   . 서비스 규모에 맞게 많이 실행하고, 요청이 많아 지면 Worker를 스케일아웃함
+ - Service Discovery
+   . 서비스 디스커버리는 컨테이너가 실행되는 위치와 상태를 제공해줌
+   . 이를 위해 자체 DMS 서버를 가지고 있음
+   . 컨테이너를 생성하면 서비스명과 동일한 도메인을 등록하고, 반대로 멈추면
+     도메인을 제거함
+   . Consul, etcd, zookeeper와 같은 외부 서비스를 사용하지 않아도 되고,
+     swarm이 내부에서 자체적으로 처리해줌
+ - Service
+   . 기본적인 배포 단위임
+   . 하나의 서비스는 하나의 이미지를 기반으로 생성하고 동일한 컨테이너를 한 개 
+     이상 실행할 수 있음
+   . 최종적으로 배포되는 서비스는 여러 개의 task로 구성됨
+ - Task
+   . 컨테이너 배포 단위임
+   . 각각의 테스크가 컨테이너를 관리함
+   . 보통 개별 도커 컨테이너를 의미하지만, 컨테이너를 실행할 때 명령어도 포함함
+                 
+
+○ 설치
+ - Docker Swarm이 Docker엔진과 통합되면서 설치는 일반적인 Docker 설치와 동일
+   # yum -y install docker       
+   # systemctl enable docker
+   # systemctl start docker
+
+○ Docker Swarm init
+ - # docker swarm init --advertise-addr [Manager Node IP]
+[root@manager1 ~]# docker swarm init --advertise-addr 192.168.13.176
+Swarm initialized: current node (y8ul9r3jq0rgt9k3vbvrayeyg) is now a manager.
+
+To add a worker to this swarm, run the following command:
+
+    docker swarm join \
+    --token SWMTKN-1-2m3tqsm8ly45vpd5i80p4bkor5zaohfmultu4cdnvfpg8yxmuk-bv8adgschaygmg9icehekb9wg \
+    192.168.13.176:2377
+
+To add a manager to this swarm, run 'docker swarm join-token manager' and follow the instructions.
+
+ - 위와 같이 초기화를 진행하면  Worker 노드를 추가하는 token 값으로 명령어가 자동 생성됨
+ - 해당 명령을 Worker 노드에 입력하면 해당 노드는 Worker 노드가 됨
+ 
+ - Master 노드(Manager 노드)를 추가하기 위해서는
+   # docker swarm join-token manager
+# docker swarm join-token manager
+To add a manager to this swarm, run the following command:
+
+    docker swarm join \
+    --token SWMTKN-1-2m3tqsm8ly45vpd5i80p4bkor5zaohfmultu4cdnvfpg8yxmuk-9ghru6puwdvqms3bn7zqtiyvt \
+    192.168.13.176:2377
+ - Manager 연결을 위해 생성된 명령을 나머지 Manager 노드에 아래와 같이 입력함
+[root@manager2 ~]#     docker swarm join \
+>     --token SWMTKN-1-2m3tqsm8ly45vpd5i80p4bkor5zaohfmultu4cdnvfpg8yxmuk-9ghru6puwdvqms3bn7zqtiyvt \
+>     192.168.13.176:2377
+This node joined a swarm as a manager.
+
+[root@manager3 ~]#     docker swarm join \
+>     --token SWMTKN-1-2m3tqsm8ly45vpd5i80p4bkor5zaohfmultu4cdnvfpg8yxmuk-9ghru6puwdvqms3bn7zqtiyvt \
+>     192.168.13.176:2377
+This node joined a swarm as a manager.
+
+○ Docker Swarm 구성 확인
+ # docker node ls
+[root@manager1 ~]# docker node ls
+ID                           HOSTNAME              STATUS  AVAILABILITY  MANAGER STATUS
+lrt89xwkugty162qk8c2av5ek    manager2.example.com  Ready   Active        Reachable
+y8ul9r3jq0rgt9k3vbvrayeyg *  manager1.example.com  Ready   Active        Leader
+yqerq5ujds38t0izzlp03dbhd    manager3.example.com  Ready   Active        Reachable
+          
+○ Docker Swarm Service 생성
+ - 기본적으로 docker run에서 사용되는 옵션을 그대로 사용할 수 있음
+ - Usage:  docker service create [OPTIONS] IMAGE [COMMAND] [ARG...]
+[root@manager1 ~]# docker service create --name web httpd
+xocc6zwdulliijqpypwby764d
+
+○ Docker Swarm Service 확인
+ - Usage:    docker service ls
+[root@manager1 ~]# docker service ls
+ID            NAME  MODE        REPLICAS  IMAGE
+xocc6zwdulli  web   replicated  0/1       httpd:latest
+[root@manager1 ~]# docker service ls
+ID            NAME  MODE        REPLICAS  IMAGE
+xocc6zwdulli  web   replicated  1/1       httpd:latest
+ - 처음 REPLICAS 필드가 0/1 로 시작해서 1/1 로 변경이 되면 컨테이너가 
+   정상적으로 실행이 된 것으로 확인 할 수 있음
+ - 해당 필드를 통해 컨테이너가 문제가 생겼는지 정상 작동 중인지 확인이 가능
+
+ - 또한 각 서비스 별로 자세한 정보를 확인
+ - Usage:    docker service ps [SERVICE]
+[root@manager1 ~]# docker service ps web
+ID            NAME   IMAGE         NODE                  DESIRED STATE  CURRENT STATE          ERROR  PORTS
+9x3qvcl5seif  web.1  httpd:latest  manager2.example.com  Running        Running 2 minutes ago
+  
+ 
+○ Docker Swarm Service Scale-out
+ - 생성된 서비스를 복제하여 분산 서비스를 할 수 있음
+ - Usage:  docker service scale SERVICE=REPLICAS [SERVICE=REPLICAS...]  
+[root@manager1 ~]# docker service scale web=3
+web scaled to 3
+
+[root@manager1 ~]# docker service ls
+ID            NAME  MODE        REPLICAS  IMAGE
+xocc6zwdulli  web   replicated  3/3       httpd:latest
+
+[root@manager1 ~]# docker service ps web
+ID            NAME   IMAGE         NODE                  DESIRED STATE  CURRENT STATE          ERROR  PORTS
+9x3qvcl5seif  web.1  httpd:latest  manager2.example.com  Running        Running 9 minutes ago
+57p0vzbkqymv  web.2  httpd:latest  manager1.example.com  Running        Running 6 minutes ago
+aqlqfena08g9  web.3  httpd:latest  manager3.example.com  Running        Running 6 minutes ago
+
+○ Docker Swarm Service 제거
+ - 생성한 서비스의 제거 및 종료는 아래 명령을 통해 가능함
+ - Usage:  docker service rm SERVICE [SERVICE...]
+[root@manager1 ~]# docker service rm web
+web
+[root@manager1 ~]# docker service ls
+ID  NAME  MODE  REPLICAS  IMAGE
+[root@manager1 ~]# docker service ps web
+Error: No such service: web
+
+○ 서비스 Rolling Update
+ - # docker service update --update-parallelism 1 --image manager1.example.com:5000/phpdemo:v2 phpdemo
+ - --update-parallelism 옵션은 컨테이너 이미지가 한번에 얼마나 변경될지 결정합니다. 0일 경우, 한번에 변경함
+ 
+○ 서비스 Rollback
+ - # docker service update --rollback phpdemo 
+
+ 
+  
+○ Docker Stack 재배포 (Swarm 모드)
+ - $ docker stack deploy --with-registry-auth -c /apps/edge-runtime/runtime_compose.yml edge-runtime --prune
+ - with-registry-auth
+   이 파라미터는 매우중요하다. 복수 노드가 있을경우, worker node에서 이미지 
+   정보를 pull 할 때, image가 private라면 worker node에서도 docker login을 
+   진행해야하는데 그러한 부분을 매니저노드에서 전달해주는 것(대신 해주는것)
+   이라고 생각하면 됨
