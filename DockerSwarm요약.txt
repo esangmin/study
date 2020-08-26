@@ -164,3 +164,191 @@ Error: No such service: web
    정보를 pull 할 때, image가 private라면 worker node에서도 docker login을 
    진행해야하는데 그러한 부분을 매니저노드에서 전달해주는 것(대신 해주는것)
    이라고 생각하면 됨
+
+
+○ 천안 SDI 배포 방법
+ - 모듈 컨테이너 stop -> deploy -> start
+
+
+
+
+[Deploy a stack to a swarm]
+
+○ 개요
+ - Docker Engine이 swarm mode로 실행되고 있을 때,
+   완전한 어플리케이션을 하나의 swarm에 배포하기 위해 
+   docker stack deploy를 사용함
+ - deploy 명령은 compose file 형태로 stack description을 받아들임    
+ - deploy 명령은 version 3.0 또는 그 이상의 어떠한 Compose file도 지원함
+ - 필요 사항
+   . version 1.13.0 또는 그 이상의 Docker Engine, swarm mode로 실행
+   . docker compose version 1.10 or later
+   
+○ Set up a Docker registry
+ - 하나의 swarm은 여러개의 Docker Engine들로 구성되기 때문에,
+   그것들에 이미지들을 분배하기 위해 하나의 registry가 요구됨
+ - docker hub 또는 자신의 registry를 사용할 수 있음
+ - 가볍게 사용하는 registry를 생성하는 방법이 여기에 있고, 이것은 나중에 폐기할 수 있음
+   . swarm에 하나의 service로서 registry를 시작
+     --  docker service create --name registry --publish published=5000,target=5000 registry:2  
+   . docker service ls 로 서비스 상태를 체크함
+   . curl로 작동을 체크함
+     -- $ curl http://localhost:5000/v2/
+
+○ Create the example application
+ - 여기서 사용되는 앱은 hit counter app
+ - 한개의 redis 인스턴스에 counter를 유지하고 그것에 방문하면 counter를 증가시키는 하나의 Python app임
+   . Create a directory for the project
+     -- $ mkdir stackdemo
+     -- $ cd stackdemo
+   . Create a file called app.py
+      from flask import Flask
+      from redis import Redis
+      
+      app = Flask(__name__)
+      redis = Redis(host='redis', port=6379)
+      
+      @app.route('/')
+      def hello():
+          count = redis.incr('hits')
+          return 'Hello World! I have been seen {} times.\n'.format(count)
+      
+      if __name__ == "__main__":
+          app.run(host="0.0.0.0", port=8000, debug=True)
+   . Create a file called requirements.txt
+      flask
+      redis   
+
+   . Create a file called Dockerfile
+      FROM python:3.4-alpine    // 3.5로 변경 필요
+      ADD . /code
+      WORKDIR /code
+      RUN pip install -r requirements.txt
+      CMD ["python", "app.py"]              
+
+   . Create a file called docker-compose.yml
+      version: '3'
+      
+      services:
+        web:
+          image: 127.0.0.1:5000/stackdemo
+          build: .
+          ports:
+            - "8000:8000"
+        redis:
+          image: redis:alpine   
+
+     -- web 앱은 위에서 정의한 Dockerfile을 사용해서 만들어짐
+     -- 또한 127.0.0.1:5000으로 tag되며, 이는 일찍이 생성한 registry의 주소이며,
+        이것은 swarm에 앱을 배포할 때 중요함
+        --> image가 생성될 때 127.0.0.1:5000/stackdemo 이름으로 바로 생성되며,
+            stackdemo 이름의 이미지는 없음
+            registry에는 들어간 상태는 아님
+        
+       
+○ Test the app with Compose
+ - docker-compose up 으로 앱을 시작
+   . web 앱 이미지를 build하고
+   . 가지고 있지 않다면 Redis 이미지는 pull하고
+   . 두개의 container를 생성함
+   . $ docker-compose up -d
+     -- Compose does not use swarm mode to deploy services to multiple nodes in a swarm. 
+        All containers will be scheduled on the current node.
+        To deploy your application across the swarm, use `docker stack deploy`.
+     -- docker images로 확인하면 127.0.0.1:5000/stackdemo 생성되어 있고, stackdemo는 없음
+ - docker-compse ps 로 앱 실행을 체크
+          Name                     Command               State           Ports
+    -----------------------------------------------------------------------------------
+    stackdemo_redis_1   docker-entrypoint.sh redis ...   Up      6379/tcp
+    stackdemo_web_1     python app.py                    Up      0.0.0.0:8000->8000/tcp
+
+   . curl 로 앱 테스트
+     -- curl http://localhost:8000
+      ubuntu@ubuntu-notebook2:~/work/docker/stackdemo$ curl http://localhost:8000
+      Hello World! I have been seen 1 times.
+      ubuntu@ubuntu-notebook2:~/work/docker/stackdemo$ curl http://localhost:8000
+      Hello World! I have been seen 2 times.
+      ubuntu@ubuntu-notebook2:~/work/docker/stackdemo$ curl http://localhost:8000
+      Hello World! I have been seen 3 times.
+
+ - Bring the app down
+   . $ docker-compose down --volumes  
+
+○ Push the generated image to the registry
+ - web 앱을 swarm으로 배포하기 위해서는, 이전에 설정한 registry로 push되어야 함
+ - Compose로 이것은 매우 간단함
+   . $ docker-compose push
+      Pushing web (127.0.0.1:5000/stackdemo:latest)...
+      The push refers to repository [127.0.0.1:5000/stackdemo]
+      1ecaaf69024c: Pushed
+      f42d716abb39: Pushed
+      e8113e3cc178: Pushed
+      28ecb941c7e3: Pushed
+      848621c1eece: Pushed
+      51ba40d1caab: Pushed
+      e480b226ea6b: Pushed
+      e5df62d9b33a: Pushed
+      7a9460d53218: Pushed
+      b2765ac0333a: Pushed
+      0ced13fcf944: Pushed
+      latest: digest: sha256:d409cb8edf56dc0096aeeea572c18f7a7553b1a296878db9618483482cfbdc76 size: 2635
+   . 이제 이 stack은 deploy될 준비가 되었음
+      
+   . docker-compose.yml에 정의된 service들을 위한 이미지들을 각각의 registry/repository로 push함
+      version: '3'
+      services:
+        service1:
+          build: .
+          image: localhost:5000/yourimage  # goes to local registry
+      
+        service2:
+          build: .
+          image: your-dockerid/yourimage  # goes to your repository on Docker Hub   
+   . $ curl http://localhost:5000/v2/_catalog
+      {"repositories":["stackdemo"]}
+     -- regis:alpine은 docker hub에 존재하니 docker hub로 push 안함
+
+○ Deploy the stack to the swarm
+ - docker stack deploy로 stack을 생성함
+   . $ docker stack deploy --compose-file docker-compose.yml stackdemo
+      Ignoring unsupported options: build
+      
+      Creating network stackdemo_default
+      Creating service stackdemo_redis
+      Creating service stackdemo_web
+   . 마지막 argument가 stack의 이름
+   . network, volume, service 이름은 stack 이름으로 prefix됨
+
+ - docker stack services stackdemo 로 실행을 체크
+    ubuntu@ubuntu-notebook2:~/work/docker/stackdemo$ docker stack services stackdemo
+    ID                  NAME                MODE                REPLICAS            IMAGE                             PORTS
+    sj9mlszabnvi        stackdemo_web       replicated          1/1                 127.0.0.1:5000/stackdemo:latest   *:8000->8000/tcp
+    te5s1wajeu90        stackdemo_redis     replicated          1/1                 redis:alpine
+   . curl로 앱을 테스트함
+     -- $ curl http://localhost:8000
+   . docker의 routng 그물망 덕분에, port 8000에 대해 어느 node던 액세스 하고
+     앱을 route할 수 있ㅇ므
+     -- $ curl http://address-of-other-node:8000
+        Hello World! I have been seen 4 times.
+
+ - docker stack rm 으로 stack을 down 시킴
+   . $ docker stack rm stackdemo
+
+    
+ - docker service rm 으로 registry를 down
+   . $ docker service rm registry
+ 
+ - swarm 모드 out하기 위해, docker swarm leave 를 사용
+   . $ docker swarm leave --force
+   
+   
+   
+   
+○ docker stack 명령들
+ - docker stack deploy    : deploy a new stack or update an existing stack
+ - docker stack ls        : list stacks
+ - docker stack ps        : list the tasks in the stack
+ - docker stack rm        : remove one or more stacks
+ - docker stack services  : list the services in the stack
+
+
