@@ -261,7 +261,7 @@ replace colleague/kit => ../kit
 	    golang.org/x/text v0.3.0 // indirect
 	    rsc.io/quote v1.5.2
 	)
- - olang.org/x/text 패키지가 latest tagged version(v0.3.0)으로 업그레이드되었습니다. 
+ - golang.org/x/text 패키지가 latest tagged version(v0.3.0)으로 업그레이드되었습니다. 
  - go.mod 파일에도 v0.3.0으로 업데이트되었네요. // indirect 주석은 모듈이 해당 디펜던시를 직접적으로 사용하지 
    않으며, 다른 모듈 디펜던시들에 의해 간접적으로 사용되고 있음을 의미합니다. 자세한 내용은 go help modules 
    명령으로 확인해보세요.
@@ -354,7 +354,7 @@ replace colleague/kit => ../kit
    API가 사라지거나 이름이 바뀌거나, 그 외의 다른 변경이 일어나는 등의 호환성 문제가 발생할 수 있음을 예상해야 
    합니다. 문서를 읽어보면, Hello가 HelloV3으로 변경된 것을 알 수 있습니다.
 	$ go doc rsc.io/quote/v3
-	package quote // import "rsc.io/quote"
+	package quote // import "rsc.io/quote/v3"
 
 	Package quote collects pithy sayings.
 
@@ -363,7 +363,6 @@ replace colleague/kit => ../kit
 	func GoV3() string
 	func HelloV3() string
 	func OptV3() string 
- - 출력 결과를 보면 import path에서 /v3가 빠져 있는 버그가 있는데, 이미 알려진 버그입니다.)
  - 이제 우리는 hello.go의 quote.Hello()를 quoteV3.HelloV3()으로 업데이트할 수 있습니다.
 	package hello
 
