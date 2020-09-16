@@ -214,7 +214,7 @@ services:
  - 빌드된 파일 및 실행 관련 파일 복사
 
 ○ Dockerfile 작성
-FROM nginx
+FROM nginx            --> 라즈베리파이에서 오류남
 # nginx의 기본 설정을 삭제하고 앱에서 설정한 파일을 복사
 RUN rm -rf /etc/nginx/conf.d
 COPY conf /etc/nginx
@@ -325,7 +325,7 @@ $ docker run --name dcol-manager -d -p 8080:8080 -v /apps/dcol-manager/config:/a
 
 ○ Private registry 이미지 List 조회 (Server에서 해야 함)
 $ curl -X GET http://localhost:5000/v2/_catalog
-$ curl -X GET http://locahost:5000/v2/hello-world/tags/list
+$ curl -X GET http://localhost:5000/v2/hello-world/tags/list
 
 $ curl -X GET http://192.168.0.173:5000/v2/_catalog
 Warning: Binary output can mess up your terminal. Use "--output -" to tell
@@ -345,6 +345,7 @@ $ curl --user edge2:'!234qwer' -X GET https://192.168.0.173:5000/v2/dcol-manager
 $ curl --user edge2:'!234qwer' -v --silent -H "Accept: application/vnd.docker.distribution.manifest.v2+json" -X GET https://192.168.0.173:5000/v2/dcol-manager-web/manifests/1.0.1 2>&1 | grep Docker-Content-Digest | awk '{print ($3)}' 
 sha256:93c07a375db97f5e8c62de7baa8a08b05dde5c8a8ec667d8b8cafec8bc572f80
 
+
  - manifest 삭제
 $ curl --user edge2:'!234qwer' -v --silent -H "Accept: application/vnd.docker.distribution.manifest.v2+json" -X DELETE https://192.168.0.173:5000/v2/dcol-manager-web/manifests/sha256:93c07a375db97f5e8c62de7baa8a08b05dde5c8a8ec667d8b8cafec8bc572f80
 {"errors":[{"code":"UNSUPPORTED","message":"The operation is unsupported."}]}
@@ -355,9 +356,24 @@ $ docker restart registry
 
  - GC 실행
 $ docker exec -it registry  bin/registry garbage-collect  /etc/docker/registry/config.yml
+
  - 레지스트리 재시작
 $ docker stop registry
 $ docker start registry
+
+
+$ curl -X GET http://localhost:5000/v2/_catalog
+$ curl -X GET http://localhost:5000/v2/exampleapp3/tags/list
+$ curl -v --silent -H "Accept: application/vnd.docker.distribution.manifest.v2+json" -X GET http://localhost:5000/v2/exampleapp3/manifests/1b043a7 2>&1 | grep Docker-Content-Digest | awk '{print ($3)}' 
+$ curl -v --silent -H "Accept: application/vnd.docker.distribution.manifest.v2+json" -X DELETE http://localhost:5000/v2/exampleapp3/manifests/sha256:80e2a42f32010c1eb96df7a5b676011e12d01501e972edc55d2d37a13fed78a5
+$ docker exec local-registry sed -i 's/storage:/storage:\n  delete:\n    enabled: true/g' /etc/docker/registry/config.yml
+$ docker restart local-registry 
+
+
+$ docker exec -it local-registry bin/registry garbage-collect /etc/docker/registry/config.yml
+$ docker stop local-registry
+$ docker start local-registry
+
 
 
 ○ Docker Image Tag 정책
@@ -426,6 +442,9 @@ TSTRBP1-DCOL-P
  - 앱 등록
    . 앱명 / 앱버전 / 앱파일그룹명 / 앱파일그룹버전 / 설명
    . 컨테이너 옵션 : --name dcol-manager-web -d -p 3000:3000 --restart unless-stopped -v /apps/dcol-manager-web/config/config.js:/usr/share/nginx/html/config.js -v /etc/localtime:/etc/localtime:ro dcol-manager-web:1.0.1.0
+   . 컨테이너 옵션 : --name dcol-manager -d -p 8080:8080 --restart unless-stopped -v /apps/dcol-manager/config:/app/config -v /apps/dcol-manager/logs:/app/logs -v /etc/localtime:/etc/localtime:ro dcol-manager:1.0.2.0
+   . 컨테이너 옵션 : --name mw-deploy-agent -d --rm -v /var/run/docker.sock:/var/run/docker.sock -v /apps/mw-deploy-agent/config/deploy.sh:/deploy.sh deploy-agent:1.0.0 /deploy.sh
+   . 컨테이너 옵션 : --name fw-deploy-agent -d --rm -v /var/run/docker.sock:/var/run/docker.sock -v /apps/fw-deploy-agent/config/deploy.sh:/deploy.sh deploy-agent:1.0.0 /deploy.sh
 
  - 앱 설치 관리
    . 미설치 디바이스 탭에서 선택 후 버전 선택, [설치] 클릭
@@ -499,19 +518,23 @@ TSTRBP1-DCOL-P
   RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 
+ - Driver로의 배포는 배포서버를 통하지 않고 자체 agent를 통해 실행됨에 따라 배포결과현황 파악이 어려움
+  선택1)
+   전체 Rack에 접근 가능한 배포서버에서 전체 Rack의 Driver들의 S/W 버전 현황을 출력하는 별도 CLI 프로그램 개발
+
+
+
+
 ○ Docker in Docker
 docker run -it --rm --name driver-agent -v /var/run/docker.sock:/var/run/docker.sock ubuntu /bin/bash   (X)
 docker run -it --rm --name driver-agent jpetazzo/dind /bin/bash (X)
 
 docker run -it --rm --name driver-agent -v /var/run/docker.sock:/var/run/docker.sock jpetazzo/dind /bin/bash (O)
--v /c/Users/SangMin/.ssh/authorized_keys:/.ssh/authorized_keys
 
 docker run -it --rm --name driver-agent -v /var/run/docker.sock:/var/run/docker.sock
 -v /c/Users/SangMin/.ssh/authorized_keys:/.ssh/authorized_keys jpetazzo/dind /bin/bash (O)
 
-
 - apt-get update && apt-get -y install open-ssh-client 추가 필요
-
 
 docker run -i --rm --privileged --network host -v /test.sh:/test.sh alpine:3.7 sh /test.sh
 
@@ -525,4 +548,167 @@ FROM jpetazzo/dind
 
 RUN apt-get update
 RUN apt-get install -y openssh-client
+RUN apt-get install -y sshpass
+
+
+# ENTRYPOINT /bin/bash
+
+○ deploy-agent 빌드
+ - $ docker build --tag deploy-agent:1.0.0 .
+
+○ mw-deploy-agent 실행
+ - $ docker run --name mw-deploy-agent -d --rm -v /var/run/docker.sock:/var/run/docker.sock -v /apps/mw-deploy-agent/config/deploy.sh:/deploy.sh deploy-agent:1.0.0 /deploy.sh
+
+
+○ 사전작업
+ - driver-agent 빌드 및 배포서버 레지스트리로 전송
+ - /apps/driver-agent/config/deploy.sh 작성
+ - dcol내 registry container 실행
+ - driver내 /etc/docker/daemon.json 수정
+   {
+      "insecure-registries":["192.168.1.33:5000"]
+   }
+   . $ sudo service docker restart
+       
+
+○ deploy.sh 작성
+ - TEST 버전
+#!/bin/bash
+
+APP_NAME=hello
+TAG=0.1
+DEPLOY_REGISTRY=192.168.0.173:5000
+LOCAL_REGISTRY=localhost:5000
+AGENT_REGISTRY=192.168.1.33:5000
+SSHUSER=pi
+SSHPASS=raspberry
+DRIVER1_CPU1=("192.168.1.31" "192.168.7.101")
+DRIVER2_CPU1=("192.168.6.102" "192.168.7.102")
+DRIVER3_CPU1=("192.168.6.103" "192.168.7.103")
+DRIVER4_CPU1=("192.168.6.104" "192.168.7.104")
+DRIVER5_CPU1=("192.168.6.105" "192.168.7.105")
+
+DRIVER1_CPU2=("192.168.1.34" "192.168.7.201")
+DRIVER2_CPU2=("192.168.6.202" "192.168.7.202")
+DRIVER3_CPU2=("192.168.6.203" "192.168.7.203")
+DRIVER4_CPU2=("192.168.6.204" "192.168.7.204")
+DRIVER5_CPU2=("192.168.6.205" "192.168.7.205")
+
+APP_SERVERS=(
+     DRIVER1_CPU1[@]
+     DRIVER1_CPU2[@]
+     DRIVER2_CPU1[@]
+     DRIVER2_CPU2[@]
+     DRIVER3_CPU1[@]
+     DRIVER3_CPU2[@]
+     DRIVER4_CPU1[@]
+     DRIVER4_CPU2[@]
+     DRIVER5_CPU1[@]
+     DRIVER5_CPU2[@]
+)
+
+# 배포서버에서 이미지 받기
+#docker pull $DEPLOY_REGISTRY/$APP_NAME:$TAG
+
+# Dcol 로컬서버 레지스트리로 이미지 넣기
+#docker tag $LOCAL_REGISTRY/$APP_NAME:$TAG
+#docker push ${LOCAL_REGISTRY}/$APP_NAME:$TAG
+
+SSH="sshpass -p ${SSHPASS} ssh -o StrictHostKeyChecking=no"
+COUNT=${#APP_SERVERS[@]}
+for ((i=0; i<$COUNT; i++))
+do
+  IP1=${!APP_SERVERS[i]:0:1}
+  IP2=${!APP_SERVERS[i]:1:1}
+
+  ping -q -c 1 -W 1 $IP1 >/dev/null
+  if [ $? -eq 0 ]; then
+    SERVER=$IP1
+  else
+    ping -q -c 1 -W 1 $IP2 >/dev/null
+    if [ $? -eq 0 ]; then
+      SERVER=$IP2
+    else
+      continue
+    fi
+  fi
+
+  $SSH $SSHUSER@$SERVER docker pull $AGENT_REGISTRY/$APP_NAME:$TAG
+  $SSH $SSHUSER@$SERVER docker stop $APP_NAME
+  $SSH $SSHUSER@$SERVER docker rm $APP_NAME
+  $SSH $SSHUSER@$SERVER docker run -d --name $APP_NAME -p 80:80 $AGENT_REGISTRY/$APP_NAME:$TAG
+
+done
+
+
+ - RACK 버전 
+#!/bin/bash
+
+APP_NAME=mv   # syswin의 driver에 설치되는 MW 이름으로 변경 필요
+TAG=0.1       # syswin의 driver에 설치되는 MW의 테그로 변경 필요
+DEPLOY_REGISTRY=192.168.0.173:5000  # 배포서버 레지스트리로 변경 필요
+LOCAL_REGISTRY=localhost:5000
+AGENT_REGISTRY=192.168.6.11:5000
+SSHUSER=firefly
+SSHPASS=firefly
+
+DRIVER1_CPU1=("192.168.6.101" "192.168.7.101")
+DRIVER2_CPU1=("192.168.6.102" "192.168.7.102")
+DRIVER3_CPU1=("192.168.6.103" "192.168.7.103")
+DRIVER4_CPU1=("192.168.6.104" "192.168.7.104")
+DRIVER5_CPU1=("192.168.6.105" "192.168.7.105")
+
+DRIVER1_CPU2=("192.168.6.201" "192.168.7.201")
+DRIVER2_CPU2=("192.168.6.202" "192.168.7.202")
+DRIVER3_CPU2=("192.168.6.203" "192.168.7.203")
+DRIVER4_CPU2=("192.168.6.204" "192.168.7.204")
+DRIVER5_CPU2=("192.168.6.205" "192.168.7.205")
+
+APP_SERVERS=(
+     DRIVER1_CPU1[@]
+     DRIVER1_CPU2[@]
+     DRIVER2_CPU1[@]
+     DRIVER2_CPU2[@]
+     DRIVER3_CPU1[@]
+     DRIVER3_CPU2[@]
+     DRIVER4_CPU1[@]
+     DRIVER4_CPU2[@]
+     DRIVER5_CPU1[@]
+     DRIVER5_CPU2[@]
+)
+
+# 배포서버에서 이미지 받기
+#docker pull $DEPLOY_REGISTRY/$APP_NAME:$TAG
+
+# Dcol 로컬서버 레지스트리로 이미지 넣기
+#docker tag $LOCAL_REGISTRY/$APP_NAME:$TAG
+#docker push ${LOCAL_REGISTRY}/$APP_NAME:$TAG
+
+SSH="sshpass -p ${SSHPASS} ssh -o StrictHostKeyChecking=no"
+COUNT=${#APP_SERVERS[@]}
+for ((i=0; i<$COUNT; i++))
+do
+  IP1=${!APP_SERVERS[i]:0:1}
+  IP2=${!APP_SERVERS[i]:1:1}
+
+  ping -q -c 1 -W 1 $IP1 >/dev/null
+  if [ $? -eq 0 ]; then
+    SERVER=$IP1
+  else
+    ping -q -c 1 -W 1 $IP2 >/dev/null
+    if [ $? -eq 0 ]; then
+      SERVER=$IP2
+    else
+      continue
+    fi
+  fi
+
+  $SSH $SSHUSER@$SERVER docker pull $AGENT_REGISTRY/$APP_NAME:$TAG
+  $SSH $SSHUSER@$SERVER docker stop $APP_NAME
+  $SSH $SSHUSER@$SERVER docker rm $APP_NAME
+  $SSH $SSHUSER@$SERVER docker run -d --name $APP_NAME -p 80:80 $AGENT_REGISTRY/$APP_NAME:$TAG
+
+done
+
+
 
