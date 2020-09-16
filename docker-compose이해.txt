@@ -1,3 +1,4 @@
+sds 5 : admin1234
 
 [docker 불편]
  - 장황한 옵션
@@ -86,6 +87,7 @@ services:
  - links
    . 도커 컴포즈 파일 버전 3으로 와서는 links 항목을 사용하지 않더라도 한 네트워크 안에 있는 서비스끼리 서로 통신을 할 수 있음
    . docker-compose.yml 안에 있는 서비스들은 별도로 지정하지 않으면 하나의 네트워크에 속함
+
 
 
 [docker-compose의 주요 명령어]
@@ -180,4 +182,100 @@ services:
      kafka:
        ports:
          - "9092-9094:9092"
-         
+
+
+○ Docker Compose Network
+ - 기본적으로 Docker Compose는 하나의 디폴트 네트워크에 모든 컨테이너를 연결함
+ - 디폴트 네트워크의 이름은 docker-compose.yml가 위치한 디렉토리 이름 뒤에 
+   _default가 붙음.  예를 들어, 디렉토리 이름이 our_app라면 디폴트 네트워크 
+   이름은 our_app_default가 됨
+ - 디폴트 네트워크의 이름은 Docker Compose로 애플리케이션을 올릴 때 어렵지 않게
+   확인할 수 있음. 왜냐하면 Compose는 먼저 네트워크를 생성해놓고 각 컨테이너를 
+   구동한 후 네트워크에 연결시키기 때문임
+ - Docker Compose로 애플리케이션을 내릴 때는 반대 순서로 먼저 컨테이너를 
+   종료/제거해놓고 제일 마지막에 네트워크를 제거함
+ - 애플리케이션이 돌아가고 있는 중에도 Docker 네트워크 목록을 조회하면 디폴트
+   네트워크가 확인됨
+   $ docker network ls   
+
+○ 컨테이너간 통신
+ - 디폴트 네트워크 안에서 컨테이너 간의 통신에서는 서비스의 이름이 호스트명으로 
+   사용됨. 예를 들어, web 서비스의 컨테이너에서 db 서비스의 컨테이너를 대상으로 
+   ping 명령어를 날릴 수 있음
+   $ docker-compose exec web ping db 또는 $ docker exec web ping db
+ - 컨테이넌 간 통신에서 주의할 점은 접속하는 위치가 디폴트 네트워크 내부냐 
+   외부냐에 따라서 포트(port)가 달라질 수 있음
+   . docker-compose.yml에 web 서비스의 ports 설정이 아래와 같다면,
+     services:
+       web:
+         build: .
+         ports:
+           - "8001:8000"
+   . 호스트 컴퓨터에서 접속할 때는 8001 포트를 사용해야 하고, 같은 디폴트 네트워크
+     내의 다른 컨테이너에서 접속할 때는 포트 8000을 사용해야 함
+     $ curl -I localhost:8001
+     $ docker-compose exec alpine curl -I web:8000
+
+○ 커스텀 네트워크 추가
+ - Docker Compose는 디플트 네트워크 뿐만 아니라 다른 네트워크도 필요에 따라 
+   추가해줄 수 있음
+ - docker-compose.yml의 networks 항목 아래에 our_net이라는 네트워크를 추가하고, 
+   web 서비스의 networks 항목 아래에 our_net 네트워크를 추가
+ - 이렇게 설정을 하게되면 db 서비스는 디폴트 네트워크에만 연결되지만, web 
+   서비스는 디폴트 네트워크 뿐만 아니라 our_net 네트워크에도 연결되게 됨
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    networks:
+      - default
+      - our_net
+
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+
+networks:
+  our_net:
+    driver: bridge
+
+ - out_new은 Docker Compose 내부에서 정의된 네트워크이므로 애플리케이션을 내릴 
+   때 디폴트 네트워크와 함께 삭제됨
+
+○ 외부 네트워크 사용
+ - Docker Compose가 제공하는 디폴트 네트워크 대신에 외부에서 미리 생성해놓은 
+   다른 네트워크를 사용할 수도 있음
+ - 먼저 our_net이라는 네트워크를 별도로 생성
+   $ docker network create out_new
+ - docker-compose.yml에서 default 네트워크의 external 옵션에 our_net을 설정함
+networks:
+  default:
+    external:
+      name: our_net
+ - Docker Compose로 애프리케이션을 올리고, our_net 네트워크의 상세 정보를 
+  확인해보면 Containers 항목에 두 개의 컨테이너가 연결된 것을 볼 수 있음
+  $ docker-compose up -d
+  $ docker network inspect our_net
+ - 외부에서 생성된 네트워크이므로 Docker Compose 애플리케이션을 내릴 때 해당 
+   네트워크가 함께 삭제되지 않음
+$ docker-compose down
+Stopping our_app_web_1 ... done
+Stopping our_app_db_1  ... done
+Removing our_app_web_1 ... done
+Removing our_app_db_1  ... done
+Network our_net is external, skipping
+
+ - 외부 네트워크를 잘 활용하면 서로 다른 Docker Compose에서 돌아가고 있는 
+   컨테이너 간에도 연결도 가능하게 됨. 예를 들어, 첫 번째 Docker Compose의 
+   디폴트 네트워크를 두 번째 Docker Compose의 커스텀 네트워크로 추가해주면, 
+   두 번째 Docker Compose 내의 컨테이너도 첫 번째 Docker Compose의 디폴트 
+   네트워크에 연결될 수 있음
+
+
+   
+
+   
+    
