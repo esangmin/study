@@ -349,9 +349,6 @@ container_id = client.create_container(
 )
 client.start(container_id)
 
-    
-   
-
 ㅁ 이미지 받기
  - $ sudo docker pull hello-world:latest
 
@@ -564,4 +561,33 @@ http {
 ○ Docker Container Log 확인
  - $ sudo docker logs nginx-registry
  
+○ arch
+ - x86_64 가 나중에 amd64로 변경되었음 (AMD 사에서 개발)   
+
+○ Use a restart policy
+To configure the restart policy for a container, use the --restart flag when using the docker run command. The value of the --restart flag can be any of the following:
+
+Flag	Description
+no	Do not automatically restart the container. (the default)
+on-failure	Restart the container if it exits due to an error, which manifests as a non-zero exit code.
+always	Always restart the container if it stops. If it is manually stopped, it is restarted only when Docker daemon restarts or the container itself is manually restarted. (See the second bullet listed in restart policy details)
+unless-stopped	Similar to always, except that when the container is stopped (manually or otherwise), it is not restarted even after Docker daemon restarts.
+The following example starts a Redis container and configures it to always restart unless it is explicitly stopped or Docker is restarted.
+
+$ docker run -d --restart unless-stopped redis 
+
+○ Docker를 완전히 제거하는 방법
+ - dpkg -l | grep -i docker
+ - sudo apt-get purge -y docker-engine docker docker.io docker-ce  
+ - sudo apt-get autoremove -y --purge docker-engine docker docker.io docker-ce  
+   위의 명령은 호스트에서 이미지, 컨테이너, 볼륨 또는 사용자 생성 구성 파일을 제거하지 않습니다. 
+   모든 이미지, 컨테이너 및 볼륨을 삭제하려면 다음 명령을 실행하십시오.
+ - sudo rm -rf /var/lib/docker /etc/docker
+   sudo rm /etc/apparmor.d/docker
+   sudo groupdel docker
+   sudo rm -rf /var/run/docker.sock
+ - Docker Compose 삭제
+   rm /usr/local/bin/docker-compose
+   pip uninstall docker-compose   
+
 
