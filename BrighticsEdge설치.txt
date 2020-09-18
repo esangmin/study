@@ -219,6 +219,7 @@ CentOS =========================================================================
 	vi /lib/systemd/system/docker.service
 
 6) dockerd 재시작
+        sudo systemctl daemon-reload
 	sudo service docker stop
 	sudo service docker start
 	
