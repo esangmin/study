@@ -441,10 +441,10 @@ TSTRBP1-DCOL-P
 
  - 앱 등록
    . 앱명 / 앱버전 / 앱파일그룹명 / 앱파일그룹버전 / 설명
-   . 컨테이너 옵션 : --name dcol-manager-web -d -p 3000:3000 --restart unless-stopped -v /apps/dcol-manager-web/config/config.js:/usr/share/nginx/html/config.js -v /etc/localtime:/etc/localtime:ro dcol-manager-web:1.0.1.0
-   . 컨테이너 옵션 : --name dcol-manager -d -p 8080:8080 --restart unless-stopped -v /apps/dcol-manager/config:/app/config -v /apps/dcol-manager/logs:/app/logs -v /etc/localtime:/etc/localtime:ro dcol-manager:1.0.2.0
-   . 컨테이너 옵션 : --name mw-deploy-agent -d --rm -v /var/run/docker.sock:/var/run/docker.sock -v /apps/mw-deploy-agent/config/deploy.sh:/deploy.sh deploy-agent:1.0.0 /deploy.sh
-   . 컨테이너 옵션 : --name fw-deploy-agent -d --rm -v /var/run/docker.sock:/var/run/docker.sock -v /apps/fw-deploy-agent/config/deploy.sh:/deploy.sh deploy-agent:1.0.0 /deploy.sh
+   . 컨테이너 옵션 : --name dcol-manager-web -d -p 3000:3000 --restart unless-stopped -v /apps/dcol-manager-web/config/config.js:/usr/share/nginx/html/config.js -v /etc/localtime:/etc/localtime:ro 192.168.1.209:5000/dcol-manager-web:1.0.1.0
+   . 컨테이너 옵션 : --name dcol-manager -d -p 8080:8080 --restart unless-stopped -v /apps/dcol-manager/config:/app/config -v /apps/dcol-manager/logs:/app/logs -v /etc/localtime:/etc/localtime:ro 192.168.1.209:5000/dcol-manager:1.0.2.0
+   . 컨테이너 옵션 : --name mw-deploy-agent -d --rm -v /var/run/docker.sock:/var/run/docker.sock -v /apps/mw-deploy-agent/config/deploy.sh:/deploy.sh 192.168.1.209:5000/deploy-agent:1.0.0 /deploy.sh
+   . 컨테이너 옵션 : --name fw-deploy-agent -d --rm -v /var/run/docker.sock:/var/run/docker.sock -v /apps/fw-deploy-agent/config/deploy.sh:/deploy.sh 192.168.1.209:5000/deploy-agent:1.0.0 /deploy.sh
 
  - 앱 설치 관리
    . 미설치 디바이스 탭에서 선택 후 버전 선택, [설치] 클릭
