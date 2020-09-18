@@ -413,3 +413,14 @@ app  . properties
 
 
 * pc에서 크롬 실행 후 F12, shift+ctrl+r 입력하여 캐시 삭제
+
+
+
+
+
+설치 후 오작동 발생하면
+ - 어플리케이션 설치 폴드 : /home/edge2/apps/demoedge 를 삭제
+ - DB폴더 : /home/pgdata 폴더를 삭제
+ - container : registry 를 중지 및 삭제
+ 하고 다시 2.install.sh 실행 부터 다시 수행
+ 
