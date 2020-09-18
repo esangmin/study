@@ -580,7 +580,7 @@ $ docker run -d --restart unless-stopped redis
  - dpkg -l | grep -i docker
  - sudo apt-get purge -y docker-engine docker docker.io docker-ce  
  - sudo apt-get autoremove -y --purge docker-engine docker docker.io docker-ce  
-   위의 명령은 호스트에서 이미지, 컨테이너, 볼륨 또는 사용자 생성 구성 파일을 제거하지 않습니다. 
+   위의 명령은 호스트에서 이미지, 컨테이너, 볼륨 또는 사용자 생성 구성 파일을 제거하지 않습니다.  => 삭제됨
    모든 이미지, 컨테이너 및 볼륨을 삭제하려면 다음 명령을 실행하십시오.
  - sudo rm -rf /var/lib/docker /etc/docker
    sudo rm /etc/apparmor.d/docker
