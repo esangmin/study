@@ -134,6 +134,7 @@ cached: 파일 시스템에서 사용되는 page cache의 양
  - 참조: https://vmpo.tistory.com/70
  - 참조: https://qastack.kr/programming/47177/how-do-i-monitor-the-computers-cpu-memory-and-disk-usage-in-java
 
- - com.sun.management.OperatingSystemMXBean
+ - com.sun.management.OperatingSystemMXBean(X)
+ - java.lang.management.OperatingSystemMXBean(X)
  - SIGAR API
  - JMX
