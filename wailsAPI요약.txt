@@ -1,0 +1,85 @@
+○ Creating your Application
+ - 애플리케이션은 wails.CreateApp을 사용하여 생성됨
+ - 이것은 애플리케이션을 커스터마이징할 수 있는 선택적 configuration이 취함
+ - 일단 애플리케이션이 있으면 여기에 메서드를 바인딩 할 수 있음
+
+○ Binding
+ - 단지 web frontend만 가지고는 시스템과 상호 작용할 수 없는 한 아무 의미가 없음
+ - Wails는 바인딩(Go 코드를 frontend에서 호출할 수 있도록 함)을 통해 이를 가능하게 함
+ - frontend에 바인딩할 수 있는 코드에는 2가지 유형이 있음
+   . 함수(Functions)
+   . 구조체 메서드(Struct Methods)
+ - 그것들이 바인딩되면 frontend안에서 사용될 수 있음
+ - Functions
+   . 함수 바인딩은 함수 이름으로 Bind를 호출하는 것만큼 쉬움
+	package main
+
+	import (
+	  "github.com/wailsapp/wails"
+	  "fmt"
+	)
+
+	func Greet(name string) string {
+	  return fmt.Printf("Hello %s!", name)
+	}
+
+	func main() {
+
+	  app := wails.CreateApp(&wails.AppConfig{
+	    Width:  1024,
+	    Height: 768,
+	  })
+	  app.Bind(Greet)
+	  app.Run()
+	}
+
+ - 이것이 실행되면 'Greet'이라는 Javascript 함수가 global 'backend' 객체하에 사용 가능함
+ - 함수는 backend.Greet("World")를 호출함으로써 invoke됨
+ - 동적으로 생성된 함수는 표준 Promise를 반환함
+ - 이 간단한 예제의 경우 결과를 다음과 같이 인쇄 할 수 있음
+   . backend.Greet("World").then(console.log)
+ - Javascript의 Scalar 타입들은 자동으로 관련된 Go 타입들로 변환되고 Object들은 map[string]interface{}로 변환됨
+ - Go에 있는 구체적인 유형으로 만들고 싶다면 Hashicorp's mapstructure를 사용하기를 추천함
+ - 기본 Vue 템플릿 프로젝트를 사용하여 구조체 및 콜백 함수를 포함하도록 main.go를 업데이트함
+	  type MyData struct {
+	    A string
+	    B float64
+	    C int64
+	  }
+
+	  // We are expecting a javascript object of the form:
+	  // { A: "", B: 0.0, C: 0 }
+	  func basic(data map[string]interface{}) string {
+	    var result MyData
+	    fmt.Printf("data: %#v\n", data)
+
+	    err := mapstructure.Decode(data, &result)
+	    if err != nil {
+	      // Do something with the error
+	    }
+	    fmt.Printf("result: %#v\n", result)
+	    return "Hello World!"
+	  }
+ - 프론트 엔드에서 HelloWorld.vue 컴포넌트의 getMessage 메소드를 업데이트하여 객체를 보냄
+	    getMessage: function() {
+	      var self = this;
+	      var mytestStruct = {
+		A: "hello",
+		B: 1.1,
+		C: 99
+	      }
+	      window.backend.basic(mytestStruct).then(result => {
+		self.message = result;
+	      });
+	    }
+ - 이것을 실행하면, 다음과 같이 출력됨
+	data: map[string]interface {}{"A":"hello", "B":1.1, "C":99}
+	result: main.MyData{A:"hello", B:1.1, C:99}
+ - 경고 : 비즈니스 로직과 데이터 구조는 주로 애플리케이션의 Go 부분에서 담당하고 업데이트는 이벤트를 사용하여 frontend로 전송되는 것이 좋음
+   두 곳에서 상태를 관리하면 매우 불행한 삶이 이어짐
+
+
+
+
+
+
